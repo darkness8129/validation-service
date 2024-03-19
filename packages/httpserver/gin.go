@@ -2,9 +2,8 @@ package httpserver
 
 import (
 	"context"
-	"time"
-
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
