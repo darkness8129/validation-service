@@ -2,7 +2,9 @@ package main
 
 import (
 	httpcontroller "darkness8129/validation-service/app/controller/http"
+	"darkness8129/validation-service/app/service"
 	"darkness8129/validation-service/config"
+	"darkness8129/validation-service/packages/ccvalidation"
 	"darkness8129/validation-service/packages/httpserver"
 	"darkness8129/validation-service/packages/logging"
 
@@ -26,6 +28,12 @@ func main() {
 		logger.Fatal("failed to get config", "err", err)
 	}
 
+	ccValidator := ccvalidation.NewCustomValidator()
+
+	services := service.Services{
+		CreditCard: service.NewCreditCardService(logger, ccValidator),
+	}
+
 	// init http server and start it
 	httpServer := httpserver.NewGinHTTPServer(httpserver.Options{
 		Addr:         cfg.HTTP.Addr,
@@ -39,8 +47,9 @@ func main() {
 	}
 
 	httpcontroller.New(httpcontroller.Options{
-		Router: router,
-		Logger: logger,
+		Router:   router,
+		Logger:   logger,
+		Services: services,
 	})
 
 	httpServer.Start()

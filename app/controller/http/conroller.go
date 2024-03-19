@@ -1,6 +1,7 @@
 package httpcontroller
 
 import (
+	"darkness8129/validation-service/app/service"
 	"darkness8129/validation-service/packages/logging"
 
 	"fmt"
@@ -10,13 +11,15 @@ import (
 )
 
 type Options struct {
-	Router *gin.Engine
-	Logger logging.Logger
+	Router   *gin.Engine
+	Logger   logging.Logger
+	Services service.Services
 }
 
 type controllerOptions struct {
 	RouterGroup *gin.RouterGroup
 	Logger      logging.Logger
+	Services    service.Services
 }
 
 func New(opt Options) {
@@ -25,6 +28,7 @@ func New(opt Options) {
 	controllerOpt := controllerOptions{
 		RouterGroup: opt.Router.Group("/api/v1"),
 		Logger:      opt.Logger.Named("httpController"),
+		Services:    opt.Services,
 	}
 
 	newCreditCardController(controllerOpt)
@@ -57,6 +61,12 @@ const (
 	httpErrTypeClient httpErrType = "client"
 )
 
+// httpErr provides a base response type for all http controllers
+type httpResponseBody struct {
+	Response interface{} `json:"response"`
+	Err      *httpErr    `json:"err,omitempty"`
+}
+
 // errorDecorator provides unified error handling for all http controllers
 func errorDecorator(logger logging.Logger, handler func(c *gin.Context) (interface{}, *httpErr)) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -77,16 +87,16 @@ func errorDecorator(logger logging.Logger, handler func(c *gin.Context) (interfa
 		if err != nil {
 			if err.Type == httpErrTypeServer {
 				logger.Error("internal server error", "err", err)
-				c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+				c.AbortWithStatusJSON(http.StatusInternalServerError, httpResponseBody{Response: body, Err: err})
 			} else {
 				logger.Info("expected client error", "err", err)
-				c.AbortWithStatusJSON(http.StatusUnprocessableEntity, err)
+				c.AbortWithStatusJSON(http.StatusUnprocessableEntity, httpResponseBody{Response: body, Err: err})
 			}
 
 			return
 		}
 
 		logger.Info("successfully handled request")
-		c.JSON(http.StatusOK, body)
+		c.JSON(http.StatusOK, httpResponseBody{Response: body})
 	}
 }
