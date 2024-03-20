@@ -9,6 +9,92 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestErrs_ValidateCCNumber(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name        string
+		input       string
+		expectedErr error
+	}{
+		{
+			name:        "positive: American Express starts with 37",
+			input:       "371449635398431",
+			expectedErr: nil,
+		},
+		{
+			name:        "positive: American Express starts with 34",
+			input:       "340648704671028",
+			expectedErr: nil,
+		},
+		{
+			name:        "positive: Discover starts with 6011",
+			input:       "6011634526224183",
+			expectedErr: nil,
+		},
+		{
+			name:        "positive: Discover starts with 644",
+			input:       "6445644564456445",
+			expectedErr: nil,
+		},
+		{
+			name:        "positive: MasterCard starts with 51",
+			input:       "5103747810889023",
+			expectedErr: nil,
+		},
+		{
+			name:        "positive: MasterCard starts with 2221",
+			input:       "2221001234567896",
+			expectedErr: nil,
+		},
+		{
+			name:        "positive: Visa 16 length",
+			input:       "4916664563529039",
+			expectedErr: nil,
+		},
+		{
+			name:        "negative: invalid type",
+			input:       "1111111111111",
+			expectedErr: errValidateCCNumberInvalidType,
+		},
+		{
+			name:        "negative: American Express Luhn check failed",
+			input:       "375533158339514",
+			expectedErr: errValidateCCNumberLuhnCheckFailed,
+		},
+		{
+			name:        "negative: Discover Luhn check failed",
+			input:       "6011647480872146",
+			expectedErr: errValidateCCNumberLuhnCheckFailed,
+		},
+		{
+			name:        "negative: MasterCard Luhn check failed",
+			input:       "5218858536048879",
+			expectedErr: errValidateCCNumberLuhnCheckFailed,
+		},
+		{
+			name:        "negative: Visa Luhn check failed",
+			input:       "4916617520536879",
+			expectedErr: errValidateCCNumberLuhnCheckFailed,
+		},
+		{
+			name:        "negative: not numeric",
+			input:       "test",
+			expectedErr: errValidateCCNumberNumOnly,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ccValidator := NewCustomValidator()
+
+			actual := ccValidator.ValidateCCNumber(tc.input)
+			require.Equal(t, tc.expectedErr, actual, "errs are not equal")
+		})
+	}
+}
+
 func TestErrs_ValidateCCExpDate(t *testing.T) {
 	month := fmt.Sprintf("%02d", time.Now().Month())
 	year := fmt.Sprintf("%d", time.Now().Year()+1)

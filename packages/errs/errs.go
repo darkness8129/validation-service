@@ -1,6 +1,6 @@
 package errs
 
-// Err provides a unified custom error used in the system, implements Error interface
+// Err provides a unified custom error used in the system, implements Error interface.
 type Err struct {
 	Message string `json:"message"`
 	Code    string `json:"code"`

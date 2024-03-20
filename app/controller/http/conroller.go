@@ -47,7 +47,7 @@ func corsMiddleware(c *gin.Context) {
 	c.Next()
 }
 
-// httpErr provides a base error type for all http controller errors
+// httpErr provides a base error type for all http controller errors.
 type httpErr struct {
 	Type    httpErrType `json:"-"`
 	Code    string      `json:"code,omitempty"`
@@ -61,7 +61,7 @@ const (
 	httpErrTypeClient httpErrType = "client"
 )
 
-// httpErr provides a base response type for all http controllers
+// httpResponseBody provides a base response type for all http controllers.
 type httpResponseBody struct {
 	Response interface{} `json:"response"`
 	Err      *httpErr    `json:"err,omitempty"`
